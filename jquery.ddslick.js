@@ -1,6 +1,7 @@
 //Title: Custom DropDown plugin by PC
 //Documentation: http://designwithpc.com/Plugins/ddslick
-//Author: PC
+//Author: PC - Extended by http://github.com/pupi1985
+//Version: pupi1985-2.1
 //Website: http://designwithpc.com
 //Twitter: http://twitter.com/chaudharyp
 
