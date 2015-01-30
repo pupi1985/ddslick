@@ -31,8 +31,9 @@
         imagePosition: "left",
         showSelectedHTML: true,
         clickOffToClose: true,
-		embedCSS: true,
-        onSelected: function () { }
+        embedCSS: true,
+        onSelected: function () { },
+        onClosed: function () { }
     },
 
     ddOptionsHtml = '<ul class="dd-options"></ul>',
@@ -175,8 +176,15 @@
                     ddOptions.addClass('dd-click-off-close');
                     obj.on('click.ddslick', function (e) { e.stopPropagation(); });
                     $('body').on('click', function () {
-                    $('.dd-open').removeClass('dd-open');
-                        $('.dd-click-off-close').slideUp(50).siblings('.dd-select').find('.dd-pointer').removeClass('dd-pointer-up');
+                        $('.dd-open').removeClass('dd-open');
+                        $('.dd-click-off-close').slideUp(50, function(){
+                                var pluginData = obj.data('ddslick');
+                                var wasOpen = ddOptions.is(':visible');
+                                if (pluginData && wasOpen) {
+                                    fireCloseEvent(pluginData);
+                                }
+                            }
+                        ).siblings('.dd-select').find('.dd-pointer').removeClass('dd-pointer-up');
                     });
                 }
             }
@@ -210,10 +218,9 @@
         return this.each(function () {
             var $this = $(this),
                 pluginData = $this.data('ddslick');
-
             //Check if plugin is initialized
             if (pluginData)
-                close($this);
+                close($this, pluginData);
         });
     };
 
@@ -285,20 +292,19 @@
         obj.data('ddslick', pluginData);
 
         //Close options on selection
-        close(obj);
+        close(obj, pluginData);
 
         //Adjust appearence for selected option
         adjustSelectedHeight(obj);
 
         //Callback function on selection
-        if (typeof settings.onSelected == 'function') {
+        if (typeof settings.onSelected === 'function') {
             settings.onSelected.call(this, pluginData);
         }
     }
 
     //Private: Close the drop down options
     function open(obj) {
-
         var $this = obj.find('.dd-select'),
             ddOptions = $this.siblings('.dd-options'),
             ddPointer = $this.find('.dd-pointer'),
@@ -310,11 +316,14 @@
         $this.removeClass('dd-open');
 
         if (wasOpen) {
-            ddOptions.slideUp('fast');
+            ddOptions.slideUp(50, function() {
+                    var pluginData = obj.data('ddslick');
+                    fireCloseEvent(pluginData);
+                }
+            );
             ddPointer.removeClass('dd-pointer-up');
             $this.removeClass('dd-open');
-        }
-        else {
+        } else {
             $this.addClass('dd-open');
             ddOptions.slideDown('fast');
             ddPointer.addClass('dd-pointer-up');
@@ -325,10 +334,13 @@
     }
 
     //Private: Close the drop down options
-    function close(obj) {
+    function close(obj, pluginData) {
         //Close drop down and adjust pointer direction
         obj.find('.dd-select').removeClass('dd-open');
-        obj.find('.dd-options').slideUp(50);
+        obj.find('.dd-options').slideUp(50, function() {
+                fireCloseEvent(pluginData);
+            }
+        );
         obj.find('.dd-pointer').removeClass('dd-pointer-up').removeClass('dd-pointer-up');
     }
 
@@ -359,6 +371,14 @@
                 $this.find('.dd-option-text').css('lineHeight', lOHeight);
             }
         });
+    }
+
+    //Private: Fire onClosed event
+    function fireCloseEvent(pluginData) {
+        //Callback function on closed
+        if (typeof pluginData.settings.onClosed === 'function') {
+            pluginData.settings.onClosed.call(this, pluginData);
+        }
     }
 
 })(jQuery);
